@@ -12,7 +12,7 @@ The original version only had:
 
 The original extension was built when Flash was the primary export format for Newgrounds games. This version patches in more functionalty, including:
 
-✅ Scoreboard posting (Now sends confurmation messages to the Game Controller in Stencyl)
+✅ Scoreboard posting (Now sends confirmation messages to the Game Controller in Stencyl)
 
 ✅ Get the player's NewGrounds Username
 
@@ -21,9 +21,12 @@ The original extension was built when Flash was the primary export format for Ne
 This is a work-in-progress. It currently works with basic Stencyl projects and has been tested in production. Some functionality (like full response feedback from scoreboards) is still incomplete.
 
 🔧 Status
+
+✔️ Logged In Status
+
 ✔️ Working in live games
 
-⚠️ Scoreboard callback success state not fully functional
+✔️ Scoreboard submit functional
 
 💬 Medal unlock confirmed working
 
