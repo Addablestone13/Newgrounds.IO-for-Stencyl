@@ -34,11 +34,11 @@
 		</fields>
 	</block>
 
-	<block tag="NG_submitScore" spec="Submit Score %1 to Scoreboard ID %0" code="StencylNG.loadScoreboardsAndSubmitScore(~,~);" help="Submit a score to the given scoreboard. Make sure the player is logged in." type="action" color="yellow" returns="void">
-		<fields>
-			<number order="0"></number> <!-- Scoreboard ID -->
-			<number order="1"></number> <!-- Score -->
-		</fields>
+	<block tag="NG_submitScore" spec="Submit Score %1 to Scoreboard ID %0" code="StencylNG.loadScoreboardsAndSubmitScore(Std.int(~), Std.int(~));" help="Submit a score to the given scoreboard. Make sure the player is logged in." type="action" color="yellow" returns="void">
+    		<fields>
+        		<number order="0"></number> <!-- Scoreboard ID -->
+        		<number order="1"></number> <!-- Score -->
+   		</fields>
 	</block>
 
 	<block tag="NG_getMedalProperty" spec="%0 of Medal %1" code="StencylNG.getMedalProperty(~,~)" help="Get various properties of a medal." type="normal" color="yellow" returns="anything">
