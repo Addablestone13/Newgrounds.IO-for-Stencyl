@@ -20,7 +20,7 @@ This is a work-in-progress. It currently works with basic Stencyl projects and h
 
 ⚠️ Scoreboard callback success state not fully functional
 
-💬 Medals and other core features confirmed working
+💬 Medal unlock confirmed working
 
 📌 Credits
 Extension base by Rob1221
