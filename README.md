@@ -32,5 +32,5 @@ Extension base by Rob1221
 
 Haxe NG.IO backend by Geokureli
 
-Scoreboard Patch & Fixes by Addablestone13
+Patch & Fixes by Addablestone13
 
