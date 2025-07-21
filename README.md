@@ -13,7 +13,7 @@ The original extension was built when Flash was the primary export format for Ne
 
 ✅ Scoreboard posting (partially working — no success message returned yet)
 
-✅ get the player's NewGrounds Username
+✅ Get the player's NewGrounds Username
 
 ✅ Check if user is signed into NewGrounds
 
