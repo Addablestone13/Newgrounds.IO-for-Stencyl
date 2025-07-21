@@ -101,6 +101,15 @@ class StencylNG
 		}
 	}
 	
+	public static function isUserLoggedIn():Bool {
+        return NG.core != null && NG.core.loggedIn;
+	}
+	
+	public static function isLoggedIn():Bool {
+   	return getUsername() != null && getUsername() != "";
+	}
+
+	
 	public static function setUnlockCallback(callbackFn:Medal->Void)
 	{
 		unlockCallback = callbackFn;
@@ -184,6 +193,25 @@ class StencylNG
 	{
 		trace("Failed to find medals.");
 	}
+
+	public static function getUsername():String {
+	if (NG.core == null) {
+		trace("NG core not initialized.");
+		return null;
+	}
+
+	if (!NG.core.loggedIn) {
+        trace("User not logged in.");
+        return null;
+	}
+
+	if (NG.core.user == null) {
+        trace("User data not available.");
+        return null;
+	}
+
+	return NG.core.user.name;
+}
 
 
 public static function submitScore(boardID:Int, score:Int) {
