@@ -241,13 +241,20 @@ public static function submitScore(boardID:Int, score:Int) {
     
     trace("Submitting score " + score + " to board " + boardID);
     
+
   board.scorePostedCallback = function(response) {
-    if (response.success && response.result != null && response.result.success) {
+    trace("Raw response: " + Std.string(response));
+
+    if (response.success) {
         trace("Score posted successfully!");
+    } else if (response.result != null && response.result.message != null) {
+        trace("Failed to post score: " + response.result.message);
     } else {
-        trace("Failed to post score: " + (response.result != null && response.result.message != null ? response.result.message : "No message"));
+        trace("Failed to post score: No message");
     }
 };
+
+
 
 board.postScore(score);
 
