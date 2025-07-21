@@ -12,7 +12,7 @@ The original version only had:
 
 The original extension was built when Flash was the primary export format for Newgrounds games. This version patches in more functionalty, including:
 
-✅ Scoreboard posting (partially working — no success message returned yet)
+✅ Scoreboard posting (Now sends confurmation messages to the Game Controller in Stencyl)
 
 ✅ Get the player's NewGrounds Username
 
