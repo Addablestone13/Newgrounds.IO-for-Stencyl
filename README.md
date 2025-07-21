@@ -1,4 +1,4 @@
-🧩 Stencyl Newgrounds.IO Extension (Unofficial HTML5 Patch)
+🧩 Stencyl Newgrounds.IO Extension (Unofficial 2025 Patch)
 This is an unofficial update to the original Newgrounds.IO extension for Stencyl, originally developed by Rob1221, which itself builds on the Newgrounds Haxe library by Geokureli.
 
 The original version only had:
