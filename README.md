@@ -26,7 +26,8 @@ This is a work-in-progress. It currently works with basic Stencyl projects and h
 
 💬 Medal unlock confirmed working
 
-📌 Credits
+📌 Credits:
+
 Extension base by Rob1221
 
 Haxe NG.IO backend by Geokureli
