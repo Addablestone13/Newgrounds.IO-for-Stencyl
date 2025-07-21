@@ -40,13 +40,13 @@ This is a work-in-progress. It currently works with basic Stencyl projects and h
 
 🔧 TODO:
 
-Update Haxe NG.IO Backend
+⚠️ Update Haxe NG.IO Backend
 
-Fix Fetching Leaderboard stats
+🔐 Fix Fetching Leaderboard stats
 
-Enable Events
+💬 Enable Events
 
-Enable Cloud Saving
+💬 Enable Cloud Saving
 
 📌 Credits:
 
