@@ -26,3 +26,13 @@ This unlocks a medal using the ID assigned to the medal by Newgrounds (not the n
 Submit Score ____ to Scoreboard ID ____
 
 Submit a score to the given scoreboard. Make sure the player is logged in.
+
+
+Get Newgrounds Username
+
+Allows for collecting the Newgrounds username of the player.
+
+
+Is player signed in to Newgrounds?
+
+Returns true if the player is logged into Newgrounds. Returns false if the player is not logged into Newgrounds.
