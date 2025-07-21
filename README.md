@@ -20,15 +20,33 @@ The original extension was built when Flash was the primary export format for Ne
 
 This is a work-in-progress. It currently works with basic Stencyl projects and has been tested in production. Some functionality (like full response feedback from scoreboards) is still incomplete.
 
-🔧 Status
+🔧 Status:
 
 ✔️ Logged In Status
+
+✔️ Fetch Newgrounds username
 
 ✔️ Working in live games
 
 ✔️ Scoreboard submit functional
 
+❌ Fetch Leaderboard stats
+
+❌ Events
+
+❌ Cloud Saving
+
 💬 Medal unlock confirmed working
+
+🔧 TODO:
+
+Update Haxe NG.IO Backend
+
+Fix Fetching Leaderboard stats
+
+Enable Events
+
+Enable Cloud Saving
 
 📌 Credits:
 
