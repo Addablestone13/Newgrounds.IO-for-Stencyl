@@ -19,7 +19,8 @@ class StencylNG
 		trace("NG starting.");
 		debug = debugMode;
 		NG.createAndCheckSession(appID, debugMode, null, onSessionFail);
-		NG.core.initEncryption(encryptionKey, io.newgrounds.crypto.Cipher.RC4, io.newgrounds.crypto.EncryptionFormat.BASE_64);
+		//PREVIOUS LINE 22 ->  NG.core.initEncryption(encryptionKey, io.newgrounds.crypto.Cipher.RC4, io.newgrounds.crypto.EncryptionFormat.BASE_64);
+		NG.core.encryptionHandler = io.newgrounds.crypto.AesEncryption.create(encryptionKey); //NEW LINE 22 which calls to the added files and uses AES128
 	}
 	
 	public static function login()
@@ -72,10 +73,10 @@ class StencylNG
 	
 	public static function sendUnlock(id:Int)
 	{
-		var medal:Medal =  NG.core.medals.get(id);
+		var medal:Medal = NG.core.medals.get(id);
 		//trace(medal.toString());
 
-		if (medal.unlocked  && !debug)
+		if (medal.unlocked && !debug)
 		{
 			trace("Medal is already unlocked.");
 		}
@@ -101,15 +102,16 @@ class StencylNG
 		}
 	}
 	
-	public static function isUserLoggedIn():Bool {
-        return NG.core != null && NG.core.loggedIn;
+	public static function isUserLoggedIn():Bool
+	{
+		return NG.core != null && NG.core.loggedIn;
 	}
 	
-	public static function isLoggedIn():Bool {
-   	return getUsername() != null && getUsername() != "";
+	public static function isLoggedIn():Bool
+	{
+		return getUsername() != null && getUsername() != "";
 	}
 
-	
 	public static function setUnlockCallback(callbackFn:Medal->Void)
 	{
 		unlockCallback = callbackFn;
@@ -180,114 +182,123 @@ class StencylNG
 		}
 	}
 	
-	
 	public static function onSessionFail(error:Error)
 	{
 		trace("Session failed.");
 	}
+
 	public static function onMedalSuccess()
 	{
 		trace("Medals found.");
 	}
+
 	public static function onMedalFail()
 	{
 		trace("Failed to find medals.");
 	}
 
-	public static function getUsername():String {
-	if (NG.core == null) {
-		trace("NG core not initialized.");
-		return null;
+	public static function getUsername():String
+	{
+		if (NG.core == null)
+		{
+			trace("NG core not initialized.");
+			return null;
+		}
+
+		if (!NG.core.loggedIn)
+		{
+			trace("User not logged in.");
+			return null;
+		}
+
+		if (NG.core.user == null)
+		{
+			trace("User data not available.");
+			return null;
+		}
+
+		return NG.core.user.name;
 	}
 
-	if (!NG.core.loggedIn) {
-        trace("User not logged in.");
-        return null;
+	public static function submitScore(boardID:Int, score:Int)
+	{
+		if (NG.core == null)
+		{
+			trace("NG core not initialized.");
+			return;
+		}
+		
+		if (!NG.core.loggedIn)
+		{
+			trace("User not logged in.");
+			return;
+		}
+		
+		if (NG.core.scoreBoards == null)
+		{
+			trace("Scoreboards not loaded, loading now.");
+			NG.core.requestScoreBoards(function()
+			{
+				submitScore(boardID, score);
+			});
+			return;
+		}
+		
+		var board = NG.core.scoreBoards.get(boardID);
+		if (board == null)
+		{
+			trace("Scoreboard ID " + boardID + " not found.");
+			return;
+		}
+		
+		trace("Submitting score " + score + " to board " + boardID);
+		
+		board.scorePostedCallback = function(response)
+		{
+			trace("Raw response: " + Std.string(response));
+
+			if (response.success)
+			{
+				trace("Score posted successfully!");
+			}
+			else if (response.result != null && response.result.message != null)
+			{
+				trace("Failed to post score: " + response.result.message);
+			}
+			else
+			{
+				trace("Failed to post score: No message");
+			}
+		};
+
+		board.postScore(score);
 	}
 
-	if (NG.core.user == null) {
-        trace("User data not available.");
-        return null;
+	public static function loadScoreboardsAndSubmitScore(boardID:Int, score:Int):Void
+	{
+		if (NG.core == null)
+		{
+			trace("NG core not initialized.");
+			return;
+		}
+		if (!NG.core.loggedIn)
+		{
+			trace("User not logged in.");
+			return;
+		}
+		if (NG.core.scoreBoards != null)
+		{
+			// Already loaded, submit immediately
+			submitScore(boardID, score);
+		}
+		else
+		{
+			trace("Scoreboards not loaded, loading now.");
+			NG.core.requestScoreBoards(function()
+			{
+				trace("Scoreboards loaded.");
+				submitScore(boardID, score);
+			});
+		}
 	}
-
-	return NG.core.user.name;
-}
-
-
-public static function submitScore(boardID:Int, score:Int) {
-    if (NG.core == null) {
-        trace("NG core not initialized.");
-        return;
-    }
-    
-    if (!NG.core.loggedIn) {
-        trace("User not logged in.");
-        return;
-    }
-    
-    if (NG.core.scoreBoards == null) {
-        trace("Scoreboards not loaded, loading now.");
-        NG.core.requestScoreBoards(function() {
-            submitScore(boardID, score);
-        });
-        return;
-    }
-    
-    var board = NG.core.scoreBoards.get(boardID);
-    if (board == null) {
-        trace("Scoreboard ID " + boardID + " not found.");
-        return;
-    }
-    
-    trace("Submitting score " + score + " to board " + boardID);
-    
-
-  board.scorePostedCallback = function(response) {
-    trace("Raw response: " + Std.string(response));
-
-    if (response.success) {
-        trace("Score posted successfully!");
-    } else if (response.result != null && response.result.message != null) {
-        trace("Failed to post score: " + response.result.message);
-    } else {
-        trace("Failed to post score: No message");
-    }
-};
-
-
-
-board.postScore(score);
-
-
-}
-
-
-public static function loadScoreboardsAndSubmitScore(boardID:Int, score:Int):Void
-    {
-        if (NG.core == null)
-        {
-            trace("NG core not initialized.");
-            return;
-        }
-        if (!NG.core.loggedIn)
-        {
-            trace("User not logged in.");
-            return;
-        }
-        if (NG.core.scoreBoards != null)
-        {
-            // Already loaded, submit immediately
-            submitScore(boardID, score);
-        }
-        else
-        {
-            trace("Scoreboards not loaded, loading now.");
-            NG.core.requestScoreBoards(function() {
-                trace("Scoreboards loaded.");
-                submitScore(boardID, score);
-            });
-        }
-    }
-
-
 }
