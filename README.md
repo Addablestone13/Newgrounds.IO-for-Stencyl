@@ -30,13 +30,13 @@ This is a work-in-progress. It currently works with basic Stencyl projects and h
 
 ✔️ Scoreboard submit functional
 
-❌ Fetch Leaderboard stats
+✔️ Fetch Leaderboard stats
 
 ❌ Events
 
 ❌ Cloud Saving
 
-💬 Medal unlock confirmed working
+✔️ Medal unlock confirmed working
 
 🔧 TODO:
 
