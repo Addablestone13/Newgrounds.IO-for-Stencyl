@@ -2,11 +2,28 @@ import io.newgrounds.NG;
 import io.newgrounds.objects.Error;
 import io.newgrounds.objects.Medal;
 import io.newgrounds.objects.ScoreBoard;
+import io.newgrounds.objects.Score;
+import io.newgrounds.objects.events.Response;
+import io.newgrounds.objects.events.Result.ScoreResult;
+import io.newgrounds.components.ScoreBoardComponent.Period;
+import com.stencyl.Engine;
 
 class StencylNG
 {
 	public static var unlockCallback:Medal->Void;
 	public static var debug:Bool = false;
+	public static var medalPopup:StencylNGMedalPopup;
+	public static var medalPopupPosition:String = "top-right";
+
+	public static var leaderboardScores:Array<Score> = [];
+	public static var leaderboardLoaded:Bool = false;
+	public static var leaderboardLoading:Bool = false;
+	public static var leaderboardError:String = "";
+	public static var leaderboardScoreboardName:String = "";
+	public static var leaderboardBoardID:Int = -1;
+	public static var leaderboardSkip:Int = 0;
+	public static var leaderboardCallback:Void->Void;
+	public static var leaderboardErrorCallback:Void->Void;
 
 	public static function init(appID:String, encryptionKey:String, debugMode:Bool)
 	{
@@ -19,10 +36,55 @@ class StencylNG
 		trace("NG starting.");
 		debug = debugMode;
 		NG.createAndCheckSession(appID, debugMode, null, onSessionFail);
-		//PREVIOUS LINE 22 ->  NG.core.initEncryption(encryptionKey, io.newgrounds.crypto.Cipher.RC4, io.newgrounds.crypto.EncryptionFormat.BASE_64);
-		NG.core.encryptionHandler = io.newgrounds.crypto.AesEncryption.create(encryptionKey); //NEW LINE 22 which calls to the added files and uses AES128
+		NG.core.encryptionHandler = io.newgrounds.crypto.AesEncryption.create(encryptionKey);
+		initMedalPopup();
+	}
+
+	private static function initMedalPopup():Void
+	{
+		if (medalPopup != null)
+		{
+			return;
+		}
+
+		if (Engine.stage == null)
+		{
+			trace("Newgrounds medal popup could not be added because the Stencyl stage is not ready.");
+			return;
+		}
+
+		medalPopup = new StencylNGMedalPopup();
+		medalPopup.setPosition(medalPopupPosition);
+		Engine.stage.addChild(medalPopup);
 	}
 	
+	private static function showMedalPopup(medal:Medal):Void
+	{
+		if (medalPopup == null)
+		{
+			initMedalPopup();
+		}
+
+		if (medalPopup != null)
+		{
+			medalPopup.showMedal(medal);
+		}
+	}
+
+	/**
+	 * Sets where medal notifications appear on the game stage.
+	 * This can be called before or after Newgrounds initialization.
+	 */
+	public static function setMedalPopupPosition(position:String):Void
+	{
+		medalPopupPosition = position;
+
+		if (medalPopup != null)
+		{
+			medalPopup.setPosition(position);
+		}
+	}
+
 	public static function login()
 	{
 		if (NG.core == null)
@@ -82,14 +144,16 @@ class StencylNG
 		}
 		else
 		{
-			if (unlockCallback == null)
+			medal.onUnlock.addOnce(function ():Void
 			{
-				medal.onUnlock.add(function ():Void { trace('${medal.name} unlocked:${medal.unlocked}'); });
-			}
-			else
-			{
-				medal.onUnlock.add(function ():Void { unlockCallback(medal); });
-			}
+				showMedalPopup(medal);
+				trace('${medal.name} unlocked:${medal.unlocked}');
+
+				if (unlockCallback != null)
+				{
+					unlockCallback(medal);
+				}
+			});
 			
 			if (debug)
 			{
@@ -300,5 +364,222 @@ class StencylNG
 				submitScore(boardID, score);
 			});
 		}
+	}
+
+	/**
+	 * Fetches a ranked page of scores from a Newgrounds scoreboard.
+	 *
+	 * Rank getters are 1-based for Stencyl users. With skip = 0, rank 1 is the
+	 * first score returned by Newgrounds.
+	 */
+	public static function fetchLeaderboard(boardID:Int, limit:Int = 10, periodCode:String = "A", skip:Int = 0):Void
+	{
+		if (NG.core == null)
+		{
+			failLeaderboard("NG core not initialized.");
+			return;
+		}
+
+		if (limit < 1)
+		{
+			limit = 1;
+		}
+
+		if (skip < 0)
+		{
+			skip = 0;
+		}
+
+		var normalizedPeriod:String = normalizeLeaderboardPeriod(periodCode);
+		var period:Period = cast normalizedPeriod;
+
+		leaderboardScores = [];
+		leaderboardLoaded = false;
+		leaderboardLoading = true;
+		leaderboardError = "";
+		leaderboardScoreboardName = "";
+		leaderboardBoardID = boardID;
+		leaderboardSkip = skip;
+
+		trace("Loading " + limit + " leaderboard scores from board " + boardID + ".");
+
+		NG.core.calls.scoreBoard.getScores(boardID, limit, skip, period, false, null, null)
+			.addDataHandler(onLeaderboardResponse)
+			.addErrorHandler(onLeaderboardHttpError)
+			.send();
+	}
+
+	private static function normalizeLeaderboardPeriod(periodCode:String):String
+	{
+		if (periodCode == null)
+		{
+			return "A";
+		}
+
+		var normalized:String = periodCode.toUpperCase();
+
+		if (normalized == "D" || normalized == "W" || normalized == "M" ||
+			normalized == "Y" || normalized == "A")
+		{
+			return normalized;
+		}
+
+		trace("Invalid leaderboard period '" + periodCode + "'. Using all-time.");
+		return "A";
+	}
+
+	private static function onLeaderboardResponse(response:Response<ScoreResult>):Void
+	{
+		if (response == null)
+		{
+			failLeaderboard("Newgrounds returned no leaderboard response.");
+			return;
+		}
+
+		if (!response.success)
+		{
+			failLeaderboard(response.error != null
+				? response.error.toString()
+				: "Leaderboard request failed.");
+			return;
+		}
+
+		if (response.result == null || !response.result.success)
+		{
+			failLeaderboard(response.result != null && response.result.error != null
+				? response.result.error.toString()
+				: "Newgrounds rejected the leaderboard request.");
+			return;
+		}
+
+		leaderboardScores = response.result.data.scores != null
+			? response.result.data.scores
+			: [];
+
+		if (response.result.data.scoreboard != null)
+		{
+			leaderboardScoreboardName = response.result.data.scoreboard.name;
+		}
+
+		leaderboardLoading = false;
+		leaderboardLoaded = true;
+		leaderboardError = "";
+
+		trace("Loaded " + leaderboardScores.length + " leaderboard scores.");
+
+		if (leaderboardCallback != null)
+		{
+			leaderboardCallback();
+		}
+	}
+
+	private static function onLeaderboardHttpError(error:Error):Void
+	{
+		failLeaderboard(error != null ? error.toString() : "Leaderboard connection failed.");
+	}
+
+	private static function failLeaderboard(message:String):Void
+	{
+		leaderboardScores = [];
+		leaderboardLoading = false;
+		leaderboardLoaded = false;
+		leaderboardError = message != null ? message : "Unknown leaderboard error.";
+
+		trace("Leaderboard error: " + leaderboardError);
+
+		if (leaderboardErrorCallback != null)
+		{
+			leaderboardErrorCallback();
+		}
+	}
+
+	public static function setLeaderboardCallback(callbackFn:Void->Void):Void
+	{
+		leaderboardCallback = callbackFn;
+	}
+
+	public static function setLeaderboardErrorCallback(callbackFn:Void->Void):Void
+	{
+		leaderboardErrorCallback = callbackFn;
+	}
+
+	public static function getLeaderboardScoreCount():Int
+	{
+		return leaderboardScores != null ? leaderboardScores.length : 0;
+	}
+
+	public static function isLeaderboardLoaded():Bool
+	{
+		return leaderboardLoaded;
+	}
+
+	public static function isLeaderboardLoading():Bool
+	{
+		return leaderboardLoading;
+	}
+
+	public static function getLeaderboardError():String
+	{
+		return leaderboardError;
+	}
+
+	public static function getLeaderboardScoreboardName():String
+	{
+		return leaderboardScoreboardName;
+	}
+
+	/**
+	 * Returns a property from a fetched score. Rank is 1-based.
+	 */
+	public static function getLeaderboardScoreProperty(property:String, rank:Int):Dynamic
+	{
+		var index:Int = rank - 1;
+
+		if (leaderboardScores == null || index < 0 || index >= leaderboardScores.length)
+		{
+			trace("Leaderboard rank " + rank + " is outside the loaded score range.");
+			return defaultLeaderboardProperty(property);
+		}
+
+		var score:Score = leaderboardScores[index];
+
+		if (property == "rank")
+		{
+			return leaderboardSkip + index + 1;
+		}
+		else if (property == "username")
+		{
+			if (score.user != null)
+			{
+				return score.user.name;
+			}
+
+			return getUsername() != null ? getUsername() : "";
+		}
+		else if (property == "value")
+		{
+			return score.value;
+		}
+		else if (property == "formatted")
+		{
+			return score.formattedValue != null ? score.formattedValue : Std.string(score.value);
+		}
+		else if (property == "tag")
+		{
+			return score.tag != null ? score.tag : "";
+		}
+
+		trace("Invalid leaderboard score property: " + property);
+		return null;
+	}
+
+	private static function defaultLeaderboardProperty(property:String):Dynamic
+	{
+		if (property == "rank" || property == "value")
+		{
+			return 0;
+		}
+
+		return "";
 	}
 }
