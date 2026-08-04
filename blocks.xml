@@ -1,0 +1,152 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+
+<palette>
+	<block tag="NG_init" spec="Init with App ID: %0 Encryption Key: %1 %2" code="StencylNG.init(~,~,~);" help="Do this at the start of the game. In Newgrounds API Tools, use AES-128 with Base64 and enter the matching encryption key here." type="action" color="yellow" returns="void">
+		<fields>
+			<text order="0"></text>
+			<text order="1"></text>
+			<dropdown order="2">
+				<choices>
+					<c text="Debug" code="true"></c>
+					<c text="Release" code="false"></c>
+				</choices>
+			</dropdown>
+		</fields>
+	</block>
+
+	<block tag="NG_setPopupPosition" spec="Set Medal Popup Position to %0" code="StencylNG.setMedalPopupPosition(~);" help="Sets where medal unlock notifications appear. This can be used before or after initializing Newgrounds." type="action" color="yellow" returns="void">
+		<fields>
+			<dropdown order="0">
+				<choices>
+					<c text="Top Left" code="&quot;top-left&quot;"></c>
+					<c text="Top Middle" code="&quot;top-middle&quot;"></c>
+					<c text="Top Right" code="&quot;top-right&quot;"></c>
+					<c text="Middle Left" code="&quot;middle-left&quot;"></c>
+					<c text="Center" code="&quot;center&quot;"></c>
+					<c text="Middle Right" code="&quot;middle-right&quot;"></c>
+					<c text="Bottom Left" code="&quot;bottom-left&quot;"></c>
+					<c text="Bottom Middle" code="&quot;bottom-middle&quot;"></c>
+					<c text="Bottom Right" code="&quot;bottom-right&quot;"></c>
+				</choices>
+			</dropdown>
+		</fields>
+	</block>
+	
+	<block tag="NG_login" spec="Log in to Newgrounds" code="StencylNG.login();" help="This block is only needed for testing outside Newgrounds." type="action" color="yellow" returns="void">
+		<fields/>
+	</block>
+	
+	<block tag="NG_unlockMedal" spec="Unlock Medal with ID %0" code="StencylNG.unlockMedal(~);" help="Use the ID number from Newgrounds, not the medal name" type="action" color="yellow" returns="void">
+		<fields>
+			<number order="0"></number>
+		</fields>
+	</block>
+
+	<block tag="NG_medal" spec="Medal" code="medal" help="Use this block with the medal property block." type="normal" color="charcoal" returns="anything" hidden="true">
+		<fields/>
+	</block>
+
+	<block tag="NG_setUnlockCallback" spec="Set Unlock Callback %1" code="StencylNG.setUnlockCallback(function(medal:io.newgrounds.objects.Medal){~});" help="This is useful for showing a popup when a medal is unlocked." type="wrapper" color="yellow" returns="void">
+		<fields>
+			<CODE_BLOCK order="0"></CODE_BLOCK>
+			<attached-block order="1" tag="NG_medal"/>
+		</fields>
+	</block>
+
+	<block tag="NG_submitScore" spec="Submit Score %1 to Scoreboard ID %0" code="StencylNG.loadScoreboardsAndSubmitScore(Std.int(~), Std.int(~));" help="Submit a score to the given scoreboard. Make sure the player is logged in." type="action" color="yellow" returns="void">
+		<fields>
+			<number order="0"></number>
+			<number order="1"></number>
+		</fields>
+	</block>
+
+	<block tag="NG_getUsername" spec="Get Newgrounds Username" code="StencylNG.getUsername()" help="Returns the logged-in Newgrounds username as a string. Returns null if not logged in." type="normal" color="yellow" returns="String">
+		<fields/>
+	</block>
+
+	<block tag="NG_isLoggedIn" spec="Is player signed in to Newgrounds?" code="StencylNG.isLoggedIn()" help="Returns true if the player is currently signed in to Newgrounds." type="normal" color="yellow" returns="Boolean">
+		<fields/>
+	</block>
+
+	<block tag="NG_getMedalProperty" spec="%0 of Medal %1" code="StencylNG.getMedalProperty(~,~)" help="Get various properties of a medal." type="normal" color="yellow" returns="anything">
+		<fields>
+			<dropdown order="0">
+				<choices>
+					<c text="ID" code="&quot;id&quot;"></c>
+					<c text="Name" code="&quot;name&quot;"></c>
+					<c text="Description" code="&quot;description&quot;"></c>
+					<c text="Image URL" code="&quot;icon&quot;"></c>
+					<c text="Point Value" code="&quot;value&quot;"></c>
+					<c text="Difficulty" code="&quot;difficulty&quot;"></c>
+					<c text="Secret" code="&quot;secret&quot;"></c>
+					<c text="Unlocked" code="&quot;unlocked&quot;"></c>
+				</choices>
+			</dropdown>
+			<anything order="1"/>
+		</fields>
+	</block>
+
+	<block tag="NG_fetchLeaderboard" spec="Fetch Top %1 Scores from Scoreboard ID %0 for %2" code="StencylNG.fetchLeaderboard(Std.int(~), Std.int(~), ~);" help="Loads a ranked list of scores from Newgrounds. The result arrives asynchronously, so read the scores inside the leaderboard loaded callback." type="action" color="yellow" returns="void">
+		<fields>
+			<number order="0"></number>
+			<number order="1"></number>
+			<dropdown order="2">
+				<choices>
+					<c text="Today" code="&quot;D&quot;"></c>
+					<c text="This Week" code="&quot;W&quot;"></c>
+					<c text="This Month" code="&quot;M&quot;"></c>
+					<c text="This Year" code="&quot;Y&quot;"></c>
+					<c text="All Time" code="&quot;A&quot;"></c>
+				</choices>
+			</dropdown>
+		</fields>
+	</block>
+
+	<block tag="NG_setLeaderboardCallback" spec="When Leaderboard Scores are Loaded %0" code="StencylNG.setLeaderboardCallback(function():Void {~});" help="Runs after a leaderboard request succeeds. Read the score count and score properties inside this event." type="wrapper" color="yellow" returns="void">
+		<fields>
+			<CODE_BLOCK order="0"></CODE_BLOCK>
+		</fields>
+	</block>
+
+	<block tag="NG_setLeaderboardErrorCallback" spec="When Leaderboard Loading Fails %0" code="StencylNG.setLeaderboardErrorCallback(function():Void {~});" help="Runs if Newgrounds rejects the leaderboard request or the connection fails. Use the leaderboard error block for details." type="wrapper" color="yellow" returns="void">
+		<fields>
+			<CODE_BLOCK order="0"></CODE_BLOCK>
+		</fields>
+	</block>
+
+	<block tag="NG_getLeaderboardScoreCount" spec="Number of Loaded Leaderboard Scores" code="StencylNG.getLeaderboardScoreCount()" help="Returns the number of scores received by the most recent successful leaderboard request." type="normal" color="yellow" returns="Number">
+		<fields/>
+	</block>
+
+	<block tag="NG_getLeaderboardScoreProperty" spec="%0 of Leaderboard Score at Rank %1" code="StencylNG.getLeaderboardScoreProperty(~, Std.int(~))" help="Gets a property from a loaded leaderboard entry. Rank starts at 1, not 0." type="normal" color="yellow" returns="anything">
+		<fields>
+			<dropdown order="0">
+				<choices>
+					<c text="Rank" code="&quot;rank&quot;"></c>
+					<c text="Username" code="&quot;username&quot;"></c>
+					<c text="Raw Score" code="&quot;value&quot;"></c>
+					<c text="Formatted Score" code="&quot;formatted&quot;"></c>
+					<c text="Tag" code="&quot;tag&quot;"></c>
+				</choices>
+			</dropdown>
+			<number order="1"></number>
+		</fields>
+	</block>
+
+	<block tag="NG_isLeaderboardLoaded" spec="Are Leaderboard Scores Loaded?" code="StencylNG.isLeaderboardLoaded()" help="Returns true after the most recent leaderboard request succeeds." type="normal" color="yellow" returns="Boolean">
+		<fields/>
+	</block>
+
+	<block tag="NG_isLeaderboardLoading" spec="Is Leaderboard Loading?" code="StencylNG.isLeaderboardLoading()" help="Returns true while waiting for a leaderboard response." type="normal" color="yellow" returns="Boolean">
+		<fields/>
+	</block>
+
+	<block tag="NG_getLeaderboardError" spec="Leaderboard Load Error" code="StencylNG.getLeaderboardError()" help="Returns the message from the most recent leaderboard loading failure." type="normal" color="yellow" returns="String">
+		<fields/>
+	</block>
+
+	<block tag="NG_getLeaderboardScoreboardName" spec="Loaded Scoreboard Name" code="StencylNG.getLeaderboardScoreboardName()" help="Returns the name of the scoreboard from the most recent successful request." type="normal" color="yellow" returns="String">
+		<fields/>
+	</block>
+
+</palette>

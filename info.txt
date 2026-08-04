@@ -1,6 +1,6 @@
 name=Newgrounds IO
 description=Newgrounds new multiplatform API
-author=Rob1221,GeoKureli
+author=Rob1221,GeoKureli,Leon from bittyBIG
 website=http://www.stencyl.com
 version=1.0
 compatibility=all

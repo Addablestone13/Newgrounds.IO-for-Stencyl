@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<stencyl-addons>
+	<palette-addon target="stencyl-behavior-palette">
+
+		<category title="Newgrounds IO" color="yellow">
+
+			<section title="Setup">
+				<header title="Connection" />
+				<block tag="NG_init" />
+				<block tag="NG_login" />
+
+				<header title="Player" />
+				<block tag="NG_getUsername" />
+				<block tag="NG_isLoggedIn" />
+			</section>
+
+			<section title="Medals">
+				<header title="Popup" />
+				<block tag="NG_setPopupPosition" />
+
+				<header title="Unlocking" />
+				<block tag="NG_unlockMedal" />
+				<block tag="NG_setUnlockCallback" />
+				<block tag="NG_getMedalProperty" />
+			</section>
+
+			<section title="Leaderboards">
+				<header title="Submit" />
+				<block tag="NG_submitScore" />
+
+				<header title="Load Scores" />
+				<block tag="NG_fetchLeaderboard" />
+				<block tag="NG_setLeaderboardCallback" />
+				<block tag="NG_setLeaderboardErrorCallback" />
+
+				<header title="Results" />
+				<block tag="NG_getLeaderboardScoreboardName" />
+				<block tag="NG_getLeaderboardScoreCount" />
+				<block tag="NG_getLeaderboardScoreProperty" />
+
+				<header title="Status" />
+				<block tag="NG_isLeaderboardLoading" />
+				<block tag="NG_isLeaderboardLoaded" />
+				<block tag="NG_getLeaderboardError" />
+			</section>
+
+		</category>
+	</palette-addon>
+</stencyl-addons>
