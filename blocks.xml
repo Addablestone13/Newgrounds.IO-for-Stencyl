@@ -149,4 +149,10 @@
 		<fields/>
 	</block>
 
+	<block tag="NG_logEvent" spec="Log Newgrounds Event %0" code="StencylNG.logEvent(~);" help="Logs a custom event to Newgrounds. Configure the event name in your game's Newgrounds Referrals &amp; Events settings first." type="action" color="yellow" returns="void">
+		<fields>
+			<text order="0"></text>
+		</fields>
+	</block>
+
 </palette>

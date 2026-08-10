@@ -24,6 +24,11 @@
 				<block tag="NG_getMedalProperty" />
 			</section>
 
+			<section title="Events">
+				<header title="Logging" />
+				<block tag="NG_logEvent" />
+			</section>
+
 			<section title="Leaderboards">
 				<header title="Submit" />
 				<block tag="NG_submitScore" />

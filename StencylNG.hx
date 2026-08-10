@@ -582,4 +582,40 @@ class StencylNG
 
 		return "";
 	}
+	/**
+	 * Logs a custom event to Newgrounds.
+	 * The event name must be configured in the game's Newgrounds Referrals & Events settings.
+	 */
+	public static function logEvent(eventName:String):Void
+	{
+		if (NG.core == null)
+		{
+			trace("NG core has not been started.");
+			return;
+		}
+
+		if (eventName == null || eventName == "")
+		{
+			trace("Newgrounds event name cannot be empty.");
+			return;
+		}
+
+		trace("Logging Newgrounds event: " + eventName);
+
+		NG.core.calls.event.logEvent(eventName)
+			.addSuccessHandler(function():Void
+			{
+				trace("Newgrounds event logged: " + eventName);
+			})
+			.addErrorHandler(function(error:Error):Void
+			{
+				trace("Failed to log Newgrounds event: " + eventName);
+				if (error != null)
+				{
+					trace(error.message);
+				}
+			})
+			.send();
+	}
+
 }
