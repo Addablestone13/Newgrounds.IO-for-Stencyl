@@ -29,6 +29,24 @@
 				<block tag="NG_logEvent" />
 			</section>
 
+			<section title="Cloud Saves">
+				<header title="Save / Load" />
+				<block tag="NG_saveGameToCloud" />
+				<block tag="NG_loadGameFromCloud" />
+				<block tag="NG_clearCloudSave" />
+
+				<header title="Callbacks" />
+				<block tag="NG_setCloudSaveCallback" />
+				<block tag="NG_setCloudSaveErrorCallback" />
+
+				<header title="Status" />
+				<block tag="NG_isCloudSaveBusy" />
+				<block tag="NG_isCloudSaveSuccessful" />
+				<block tag="NG_isCloudSaveLoaded" />
+				<block tag="NG_cloudSaveExists" />
+				<block tag="NG_getCloudSaveError" />
+			</section>
+
 			<section title="Leaderboards">
 				<header title="Submit" />
 				<block tag="NG_submitScore" />

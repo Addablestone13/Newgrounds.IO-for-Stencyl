@@ -7,6 +7,12 @@ import io.newgrounds.objects.events.Response;
 import io.newgrounds.objects.events.Result.ScoreResult;
 import io.newgrounds.components.ScoreBoardComponent.Period;
 import com.stencyl.Engine;
+import com.stencyl.behavior.Script;
+import com.stencyl.utils.Utils;
+import haxe.Http;
+import haxe.Json;
+import haxe.Serializer;
+import haxe.Unserializer;
 
 class StencylNG
 {
@@ -24,6 +30,14 @@ class StencylNG
 	public static var leaderboardSkip:Int = 0;
 	public static var leaderboardCallback:Void->Void;
 	public static var leaderboardErrorCallback:Void->Void;
+
+	public static var cloudSaveBusy:Bool = false;
+	public static var cloudSaveSuccessful:Bool = false;
+	public static var cloudSaveLoaded:Bool = false;
+	public static var cloudSaveSlotExists:Bool = false;
+	public static var cloudSaveError:String = "";
+	public static var cloudSaveCallback:Void->Void;
+	public static var cloudSaveErrorCallback:Void->Void;
 
 	public static function init(appID:String, encryptionKey:String, debugMode:Bool)
 	{
@@ -616,6 +630,292 @@ class StencylNG
 				}
 			})
 			.send();
+	}
+
+
+	/**
+	 * Saves the same savable Game Attributes used by Stencyl's built-in Save Game
+	 * system to a Newgrounds CloudSave slot.
+	 */
+	public static function saveGameToCloud(slot:Int = 0):Void
+	{
+		if (NG.core == null)
+		{
+			failCloudSave("NG core not initialized.");
+			return;
+		}
+		if (!NG.core.loggedIn || NG.core.sessionId == null)
+		{
+			failCloudSave("Player is not signed in to Newgrounds.");
+			return;
+		}
+		if (slot < 0)
+		{
+			failCloudSave("Cloud save slot cannot be negative.");
+			return;
+		}
+		if (Script.engine == null)
+		{
+			failCloudSave("Stencyl engine is not ready.");
+			return;
+		}
+
+		var payload:Array<Dynamic> = [];
+		try
+		{
+			for (key in Script.engine.gameAttributes.keys())
+			{
+				if (Script.engine.savableAttributes.get(key) == false)
+				{
+					continue;
+				}
+
+				var value:Dynamic = Utils.clone(Script.engine.gameAttributes.get(key));
+				payload.push({ name:key, value:Serializer.run(value) });
+			}
+		}
+		catch (error:Dynamic)
+		{
+			failCloudSave("Could not serialize Stencyl Game Attributes: " + Std.string(error));
+			return;
+		}
+
+		var data:String;
+		try
+		{
+			data = Json.stringify({ version:1, attributes:payload });
+		}
+		catch (error:Dynamic)
+		{
+			failCloudSave("Could not build cloud save data: " + Std.string(error));
+			return;
+		}
+
+		cloudSaveBusy = true;
+		cloudSaveSuccessful = false;
+		cloudSaveLoaded = false;
+		cloudSaveError = "";
+
+		NG.core.calls.cloudSave.setData(slot, data)
+			.addDataHandler(function(response:Response<io.newgrounds.objects.events.Result.CloudSaveResult>):Void
+			{
+				if (response != null && response.success && response.result != null && response.result.success)
+				{
+					cloudSaveBusy = false;
+					cloudSaveSuccessful = true;
+					cloudSaveError = "";
+					cloudSaveSlotExists = true;
+					trace("Stencyl game saved to Newgrounds CloudSave slot " + slot + ".");
+					if (cloudSaveCallback != null) cloudSaveCallback();
+				}
+				else
+				{
+					failCloudSave(getCloudResponseError(response, "Newgrounds rejected the cloud save."));
+				}
+			})
+			.addErrorHandler(function(error:Error):Void
+			{
+				failCloudSave(error != null ? error.toString() : "Cloud save connection failed.");
+			})
+			.send();
+	}
+
+	/** Loads a Newgrounds CloudSave slot and restores its Game Attributes. */
+	public static function loadGameFromCloud(slot:Int = 0):Void
+	{
+		if (NG.core == null)
+		{
+			failCloudSave("NG core not initialized.");
+			return;
+		}
+		if (!NG.core.loggedIn || NG.core.sessionId == null)
+		{
+			failCloudSave("Player is not signed in to Newgrounds.");
+			return;
+		}
+		if (slot < 0)
+		{
+			failCloudSave("Cloud save slot cannot be negative.");
+			return;
+		}
+
+		cloudSaveBusy = true;
+		cloudSaveSuccessful = false;
+		cloudSaveLoaded = false;
+		cloudSaveError = "";
+		cloudSaveSlotExists = false;
+
+		NG.core.calls.cloudSave.loadSlot(slot)
+			.addDataHandler(function(response:Response<io.newgrounds.objects.events.Result.CloudSaveResult>):Void
+			{
+				if (response == null || !response.success || response.result == null || !response.result.success)
+				{
+					failCloudSave(getCloudResponseError(response, "Newgrounds rejected the cloud load."));
+					return;
+				}
+
+				var slotData:Dynamic = response.result.data.slot;
+				if (slotData == null || slotData.url == null || slotData.url == "")
+				{
+					cloudSaveBusy = false;
+					cloudSaveSuccessful = true;
+					cloudSaveLoaded = false;
+					cloudSaveSlotExists = false;
+					cloudSaveError = "";
+					trace("Newgrounds CloudSave slot " + slot + " is empty.");
+					if (cloudSaveCallback != null) cloudSaveCallback();
+					return;
+				}
+
+				cloudSaveSlotExists = true;
+				loadCloudDataUrl(slotData.url);
+			})
+			.addErrorHandler(function(error:Error):Void
+			{
+				failCloudSave(error != null ? error.toString() : "Cloud load connection failed.");
+			})
+			.send();
+	}
+
+	private static function loadCloudDataUrl(url:String):Void
+	{
+		var http = new Http(url);
+		http.onData = function(data:String):Void
+		{
+			try
+			{
+				var root:Dynamic = Json.parse(data);
+				if (root == null || root.attributes == null)
+				{
+					failCloudSave("Cloud save data has an invalid format.");
+					return;
+				}
+
+				for (entry in (cast root.attributes:Array<Dynamic>))
+				{
+					if (entry == null || entry.name == null || entry.value == null)
+					{
+						continue;
+					}
+
+					var value:Dynamic = Unserializer.run(entry.value);
+					Script.engine.gameAttributes.set(entry.name, value);
+				}
+
+				cloudSaveBusy = false;
+				cloudSaveSuccessful = true;
+				cloudSaveLoaded = true;
+				cloudSaveError = "";
+				trace("Newgrounds CloudSave restored Stencyl Game Attributes.");
+				if (cloudSaveCallback != null) cloudSaveCallback();
+			}
+			catch (error:Dynamic)
+			{
+				failCloudSave("Could not restore Stencyl Game Attributes: " + Std.string(error));
+			}
+		};
+		http.onError = function(message:String):Void
+		{
+			failCloudSave("Could not download cloud save data: " + message);
+		};
+		http.request(false);
+	}
+
+	/** Deletes a Newgrounds CloudSave slot. */
+	public static function clearCloudSave(slot:Int = 0):Void
+	{
+		if (NG.core == null)
+		{
+			failCloudSave("NG core not initialized.");
+			return;
+		}
+		if (!NG.core.loggedIn || NG.core.sessionId == null)
+		{
+			failCloudSave("Player is not signed in to Newgrounds.");
+			return;
+		}
+
+		cloudSaveBusy = true;
+		cloudSaveSuccessful = false;
+		cloudSaveLoaded = false;
+		cloudSaveError = "";
+
+		NG.core.calls.cloudSave.clearSlot(slot)
+			.addDataHandler(function(response:Response<io.newgrounds.objects.events.Result.CloudSaveResult>):Void
+			{
+				if (response != null && response.success && response.result != null && response.result.success)
+				{
+					cloudSaveBusy = false;
+					cloudSaveSuccessful = true;
+					cloudSaveLoaded = false;
+					cloudSaveSlotExists = false;
+					cloudSaveError = "";
+					trace("Newgrounds CloudSave slot " + slot + " cleared.");
+					if (cloudSaveCallback != null) cloudSaveCallback();
+				}
+				else
+				{
+					failCloudSave(getCloudResponseError(response, "Newgrounds rejected the cloud clear."));
+				}
+			})
+			.addErrorHandler(function(error:Error):Void
+			{
+				failCloudSave(error != null ? error.toString() : "Cloud clear connection failed.");
+			})
+			.send();
+	}
+
+	private static function getCloudResponseError(response:Response<io.newgrounds.objects.events.Result.CloudSaveResult>, fallback:String):String
+	{
+		if (response == null) return fallback;
+		if (response.error != null) return response.error.toString();
+		if (response.result != null && response.result.error != null) return response.result.error.toString();
+		return fallback;
+	}
+
+	private static function failCloudSave(message:String):Void
+	{
+		cloudSaveBusy = false;
+		cloudSaveSuccessful = false;
+		cloudSaveLoaded = false;
+		cloudSaveError = message != null ? message : "Unknown cloud save error.";
+		trace("Newgrounds CloudSave error: " + cloudSaveError);
+		if (cloudSaveErrorCallback != null) cloudSaveErrorCallback();
+	}
+
+	public static function setCloudSaveCallback(callbackFn:Void->Void):Void
+	{
+		cloudSaveCallback = callbackFn;
+	}
+
+	public static function setCloudSaveErrorCallback(callbackFn:Void->Void):Void
+	{
+		cloudSaveErrorCallback = callbackFn;
+	}
+
+	public static function isCloudSaveBusy():Bool
+	{
+		return cloudSaveBusy;
+	}
+
+	public static function isCloudSaveSuccessful():Bool
+	{
+		return cloudSaveSuccessful;
+	}
+
+	public static function isCloudSaveLoaded():Bool
+	{
+		return cloudSaveLoaded;
+	}
+
+	public static function cloudSaveExists():Bool
+	{
+		return cloudSaveSlotExists;
+	}
+
+	public static function getCloudSaveError():String
+	{
+		return cloudSaveError;
 	}
 
 }

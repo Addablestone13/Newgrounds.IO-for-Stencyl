@@ -155,4 +155,54 @@
 		</fields>
 	</block>
 
+	<block tag="NG_saveGameToCloud" spec="Save Game to Newgrounds Cloud Slot %0" code="StencylNG.saveGameToCloud(Std.int(~));" help="Saves all Game Attributes marked as savable by Stencyl to a Newgrounds CloudSave slot. The player must be signed in." type="action" color="yellow" returns="void">
+		<fields>
+			<number order="0"></number>
+		</fields>
+	</block>
+
+	<block tag="NG_loadGameFromCloud" spec="Load Game from Newgrounds Cloud Slot %0" code="StencylNG.loadGameFromCloud(Std.int(~));" help="Loads a Newgrounds CloudSave slot and restores its saved Game Attributes. The player must be signed in." type="action" color="yellow" returns="void">
+		<fields>
+			<number order="0"></number>
+		</fields>
+	</block>
+
+	<block tag="NG_clearCloudSave" spec="Clear Newgrounds Cloud Slot %0" code="StencylNG.clearCloudSave(Std.int(~));" help="Deletes all data in a Newgrounds CloudSave slot." type="action" color="yellow" returns="void">
+		<fields>
+			<number order="0"></number>
+		</fields>
+	</block>
+
+	<block tag="NG_setCloudSaveCallback" spec="When Cloud Save Finishes %0" code="StencylNG.setCloudSaveCallback(function():Void {~});" help="Runs after a cloud save, cloud load, or cloud clear finishes successfully. A load with an empty slot also finishes here." type="wrapper" color="yellow" returns="void">
+		<fields>
+			<CODE_BLOCK order="0"></CODE_BLOCK>
+		</fields>
+	</block>
+
+	<block tag="NG_setCloudSaveErrorCallback" spec="When Cloud Save Fails %0" code="StencylNG.setCloudSaveErrorCallback(function():Void {~});" help="Runs when a cloud save, load, or clear operation fails." type="wrapper" color="yellow" returns="void">
+		<fields>
+			<CODE_BLOCK order="0"></CODE_BLOCK>
+		</fields>
+	</block>
+
+	<block tag="NG_isCloudSaveBusy" spec="Is Cloud Save Busy?" code="StencylNG.isCloudSaveBusy()" help="Returns true while a Newgrounds CloudSave operation is in progress." type="normal" color="yellow" returns="Boolean">
+		<fields/>
+	</block>
+
+	<block tag="NG_isCloudSaveSuccessful" spec="Was Cloud Save Successful?" code="StencylNG.isCloudSaveSuccessful()" help="Returns true after the most recent cloud operation completed successfully." type="normal" color="yellow" returns="Boolean">
+		<fields/>
+	</block>
+
+	<block tag="NG_isCloudSaveLoaded" spec="Was Cloud Save Loaded?" code="StencylNG.isCloudSaveLoaded()" help="Returns true after cloud save data has been successfully downloaded and restored into Stencyl Game Attributes." type="normal" color="yellow" returns="Boolean">
+		<fields/>
+	</block>
+
+	<block tag="NG_cloudSaveExists" spec="Does Cloud Save Exist?" code="StencylNG.cloudSaveExists()" help="Returns true when the most recently loaded cloud slot contained save data." type="normal" color="yellow" returns="Boolean">
+		<fields/>
+	</block>
+
+	<block tag="NG_getCloudSaveError" spec="Cloud Save Error" code="StencylNG.getCloudSaveError()" help="Returns the error message from the most recent failed cloud operation." type="normal" color="yellow" returns="String">
+		<fields/>
+	</block>
+
 </palette>
