@@ -7,6 +7,7 @@ class ComponentList {
 	public var medal     : MedalComponent;
 	public var app       : AppComponent;
 	public var event     : EventComponent;
+	public var cloudSave : CloudSaveComponent;
 	public var scoreBoard: ScoreBoardComponent;
 	public var loader    : LoaderComponent;
 	public var gateway   : GatewayComponent;
@@ -18,6 +19,7 @@ class ComponentList {
 		medal      = new MedalComponent     (_core);
 		app        = new AppComponent       (_core);
 		event      = new EventComponent     (_core);
+		cloudSave  = new CloudSaveComponent  (_core);
 		scoreBoard = new ScoreBoardComponent(_core);
 		loader     = new LoaderComponent    (_core);
 		gateway    = new GatewayComponent   (_core);
