@@ -18,7 +18,7 @@ The original extension was built when Flash was the primary export format for Ne
 
 ✅ Check if user is signed into NewGrounds
 
-This is a work-in-progress. It currently works with basic Stencyl projects and has been tested in production. Some functionality (like full response feedback from scoreboards) is still incomplete.
+This is a work-in-progress. It currently works with basic Stencyl projects and has been tested in production. Some functionality is still incomplete.
 
 🔧 Status:
 
